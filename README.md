@@ -133,6 +133,7 @@ udev 룰(99-mini-dev.rules)로 아래 노드 권한을 0666으로 설정:
 /dev/rtc0
 
 ## 🏗️ Architecture
+
 ```mermaid
 flowchart LR
   subgraph OS["OS Integration"]
@@ -156,7 +157,8 @@ flowchart LR
   SVC2 --> DAEMON
   DAEMON <--> DEV
 ```
-```mermaid
+<details> <summary><b>Runtime Flow (click to expand)</b></summary> <br/>
+mermaid```
 flowchart TB
   ROT["/dev/rotary<br/>R / K events"] --> DAEMON["env-oled daemon<br/>page + time edit"]
   DHT["/dev/dht11<br/>temp/humi read"] --> DAEMON
@@ -164,7 +166,7 @@ flowchart TB
   DAEMON --> OLED["/dev/ssd1306<br/>framebuffer write"]
 
   DHT --> LED["LED Bar<br/>humidity gauge<br/>(updated in driver)"]
-```
+</details> ```
 ## ⚙️ Build & Install
 1) Build kernel modules
 
