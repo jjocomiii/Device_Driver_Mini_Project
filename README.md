@@ -166,7 +166,8 @@ flowchart TB
   DAEMON --> OLED["/dev/ssd1306<br/>framebuffer write"]
 
   DHT --> LED["LED Bar<br/>humidity gauge<br/>(updated in driver)"]
-</details> ```
+```
+
 ## ⚙️ Build & Install
 1) Build kernel modules
 
