@@ -1,0 +1,23 @@
+
+[Unit]
+Description=OLED UI (Clock/Edit + Sensor page)
+After=mini-kmods.service
+Wants=mini-kmods.service
+
+[Service]
+Type=simple
+# 장치가 뜰 때까지 대기
+ExecStartPre=/bin/sh -c 'until [ -e /dev/ssd1306 ]; do sleep 0.2; done'
+ExecStartPre=/bin/sh -c 'until [ -e /dev/rtc0 ]; do sleep 0.2; done'
+ExecStartPre=/bin/sh -c 'until [ -e /dev/rotary ]; do sleep 0.2; done'
+ExecStartPre=/bin/sh -c 'until [ -e /dev/dht11 ]; do sleep 0.2; done'
+
+# (선택) 부팅 시 RTC->system time 동기화가 필요하면 켜
+ExecStartPre=/bin/sh -c 'hwclock -s -f /dev/rtc0 >/dev/null 2>&1 || true'
+
+ExecStart=/usr/local/bin/env-oled
+Restart=always
+RestartSec=0.5
+
+[Install]
+WantedBy=multi-user.target

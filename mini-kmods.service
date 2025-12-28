@@ -1,0 +1,16 @@
+
+[Unit]
+Description=Load mini project kernel modules from /home/pi07
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'insmod /home/pi07/ds1302_rpi_rtc.ko || true'
+ExecStart=/bin/sh -c 'insmod /home/pi07/ssd1306_i2c.ko || true'
+ExecStart=/bin/sh -c 'insmod /home/pi07/rotary_device_driver.ko || true'
+ExecStart=/bin/sh -c 'insmod /home/pi07/dht11_ledbar.ko || true'
+ExecStart=/bin/sh -c 'udevadm trigger || true'
+
+[Install]
+WantedBy=multi-user.target
