@@ -135,39 +135,35 @@ udev 룰(99-mini-dev.rules)로 아래 노드 권한을 0666으로 설정:
 ## 🏗️ Architecture
 ```mermaid
 flowchart LR
-  subgraph KERNEL["Kernel Drivers"]
-    DHT["dht11_ledbar<br/>/dev/dht11<br/>LED bar: humidity gauge"]
-    RTC["ds1302_rpi_rtc<br/>/dev/rtc0"]
-    ROT["rotary_device_driver<br/>/dev/rotary<br/>R / K events"]
-    OLED["ssd1306_i2c<br/>/dev/ssd1306"]
-  end
-
-  subgraph USER["User Space"]
-    DAEMON["env-oled daemon<br/>- draw pages (clock/sensor)<br/>- read /dev/dht11<br/>- read/write /dev/rtc0<br/>- read /dev/rotary<br/>- write framebuffer to /dev/ssd1306"]
-  end
-
   subgraph OS["OS Integration"]
-    UDEV["99-mini-dev.rules<br/>/dev permissions"]
-    SVC1["mini-kmods.service<br/>insmod kernel modules"]
+    SVC1["mini-kmods.service<br/>load kernel modules"]
+    UDEV["99-mini-dev.rules<br/>set /dev permissions"]
     SVC2["env-oled.service<br/>start daemon"]
   end
 
-  SVC1 --> DHT
-  SVC1 --> RTC
-  SVC1 --> ROT
-  SVC1 --> OLED
+  subgraph KERNEL["Kernel Space"]
+    DRV["Drivers (.ko)<br/>dht11_ledbar | ds1302_rpi_rtc | rotary | ssd1306"]
+    DEV["/dev nodes<br/>/dev/dht11 | /dev/rtc0 | /dev/rotary | /dev/ssd1306"]
+    DRV --> DEV
+  end
 
-  UDEV --> DHT
-  UDEV --> RTC
-  UDEV --> ROT
-  UDEV --> OLED
+  subgraph USER["User Space"]
+    DAEMON["env-oled daemon"]
+  end
 
+  SVC1 --> DRV
+  UDEV --> DEV
   SVC2 --> DAEMON
+  DAEMON <--> DEV
+```
+```mermaid
+flowchart TB
+  ROT["/dev/rotary<br/>R / K events"] --> DAEMON["env-oled daemon<br/>page + time edit"]
+  DHT["/dev/dht11<br/>temp/humi read"] --> DAEMON
+  DAEMON <--> RTC["/dev/rtc0<br/>read / set time"]
+  DAEMON --> OLED["/dev/ssd1306<br/>framebuffer write"]
 
-  DAEMON --> DHT
-  DAEMON --> RTC
-  DAEMON --> ROT
-  DAEMON --> OLED
+  DHT --> LED["LED Bar<br/>humidity gauge<br/>(updated in driver)"]
 ```
 ## ⚙️ Build & Install
 1) Build kernel modules
