@@ -8,24 +8,49 @@
 
 ---
 
-## 🎬 Demo / Circuit (추가 예정)
-> 자료가 준비되면 아래 경로로 추가할 예정입니다.
+## 🎬 Demo
 
-- Demo Video: `docs/videos/demo.mp4` (또는 YouTube 링크)
-- Demo GIF: `docs/videos/demo.gif`
-- Circuit / Schematic: `docs/hardware/schematic.png`
-- KiCad: `docs/hardware/kicad/*`
+<p align="center">
+  <img src="docs/videos/demo.gif" width="520">
+</p>
 
-권장 폴더 구조:
-```text
-docs/
- ├─ videos/
- │   ├─ demo.gif
- │   └─ demo.mp4
- └─ hardware/
-     ├─ schematic.png
-     └─ kicad/
-```
+<details>
+<summary><b>More demos</b></summary>
+
+<br/>
+
+- Mode switching  
+  <img src="docs/videos/switching_mode.gif" width="520">
+
+- Edit time (RTC)  
+  <img src="docs/videos/edit_time.gif" width="520">
+
+- Humidity level → LED bar  
+  <img src="docs/videos/humidity_change.gif" width="520">
+
+</details>
+
+## 🔌 Hardware
+
+- Setup photo  
+  <img src="docs/hardware/setup.png" width="520">
+
+- Schematic  
+  <img src="docs/hardware/schematic.png" width="520">
+
+<details>
+<summary><b>UI screenshots</b></summary>
+
+<br/>
+
+- Time edit UI  
+  <img src="docs/hardware/ui_time_edit.png" width="520">
+
+- Sensor UI  
+  <img src="docs/hardware/ui_sensor.png" width="520">
+
+</details>
+
 ## ✨ Features (코드 기준)
 OLED UI (env-oled 데몬)
 
@@ -225,12 +250,21 @@ env-oled.service : 부팅 시 env-oled 자동 실행
 
 ## 🧯 Troubleshooting
 
-OLED 안 뜸: i2cdetect -y 1에서 주소 확인(보통 0x3C), 배선(SDA/SCL) 확인
+- **DHT11이 `DHT ERR`로 계속 실패**  
+  → 소프트웨어 문제가 아니라 **배선/접촉 불량 가능성**을 먼저 의심  
+  → **오실로스코프로 DHT DATA 라인 파형을 측정**해 펄스(응답 신호) 유무를 확인했고, 신호가 불안정/미도달인 것을 근거로 배선 문제로 판정  
+  → 점퍼/브레드보드 연결 재정리(필요 시 풀업 적용) 후 정상 수신으로 해결  
+  <p align="center">
+    <img src="docs/hardware/trouble_shooting.png" width="720">
+  </p>
 
-DHT11 값 깨짐: 배선 짧게, 풀업 저항 고려, 샘플링 간격 유지(코드상 최소 1초 보호)
-
-서비스 안 뜸: journalctl -u mini-kmods.service -u env-oled.service로 원인 확인
-
+- **로터리/키 입력 디버깅**  
+  → `/dev/rotary`에 대해 `cat /dev/rotary`로 **R(회전) / K(버튼) 이벤트가 정상 출력되는지** 확인하여  
+     핀맵/IRQ/디바운스 문제를 빠르게 분리(입력 이벤트가 나오면 커널 드라이버/배선은 정상, 이후는 데몬 로직 점검)  
+  <p align="center">
+    <img src="docs/hardware/trouble_shooting2.png" width="720">
+  </p>
+  
 .ko 로드 실패: mini-kmods.service의 .ko 경로 수정 + dmesg 확인
 ```mermaid
 stateDiagram-v2
