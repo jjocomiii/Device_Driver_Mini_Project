@@ -89,12 +89,12 @@ Rotary Encoder 입력 인터럽트에 따라 화면 모드와 RTC 편집 모드�
 
 ## 🔧 Installation & Build
 
-본 프로젝트는 `Raspberry Pi OS (32-bit/64-bit)` 환경에서 테스트되었습니다.
+본 프로젝트는 `Raspberry Pi OS (32-bit)` 환경에서 테스트되었습니다.
 
 ### 1. Kernel Modules Build
 
 ```bash
-# 리눅스 커널 헤더 경로 지정 (본인 환경에 맞게 수정)
+# 리눅스 커널 헤더 경로 지정
 export KDIR=/home/ubuntu/linux 
 make
 
