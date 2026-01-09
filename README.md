@@ -1,5 +1,5 @@
-# 📟 RPi Embedded Linux Monitor System
-> **Kernel-to-User Full Stack Implementation** on Raspberry Pi 4B
+# 📟 RPi 온붓 드라이버 스택 (On-Boot Driver Stack)
+> Kernel-to-User Full Stack Implementation on Raspberry Pi 4B
 
 ![Generic Badge](https://img.shields.io/badge/Platform-Raspberry_Pi_4B-C51A4A.svg) ![Generic Badge](https://img.shields.io/badge/Kernel-Linux_Device_Driver-F34B7D.svg) ![Generic Badge](https://img.shields.io/badge/Language-C-00599C.svg)
 
