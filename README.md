@@ -36,13 +36,9 @@ Rotary Encoder 입력 인터럽트에 따라 화면 모드와 RTC 편집 모드�
 | 1. Mode Switching (FSM) | 2. RTC Time Edit (Rotary) | 3. Humi-Gauge (Kernel) |
 | --- | --- | --- |
 | <img src="docs/videos/switching_mode.gif" width="100%"> | <img src="docs/videos/edit_time.gif" width="100%"> | <img src="docs/videos/humidity_change.gif" width="100%"> |
-| **Rotary 회전:**<br>
-
-<br>Clock ↔ Sensor 페이지 전환 | **Button 클릭:**<br>
-
-<br>필드 이동 및 RTC 값 수정 | **Sensor 감지:**<br>
-
-<br>습도값에 따른 LED 자동 제어 |
+**Rotary 회전:**<br> | <br>Clock ↔ Sensor 페이지 전환 
+**Button 클릭:**<br> | <br>필드 이동 및 RTC 값 수정
+**Sensor 감지:**<br> | <br>습도값에 따른 LED 자동 제어
 
 ### Hardware Setup
 
