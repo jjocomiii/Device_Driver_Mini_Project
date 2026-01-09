@@ -4,7 +4,7 @@
 ![Generic Badge](https://img.shields.io/badge/Platform-Raspberry_Pi_4B-C51A4A.svg) ![Generic Badge](https://img.shields.io/badge/Kernel-Linux_Device_Driver-F34B7D.svg) ![Generic Badge](https://img.shields.io/badge/Language-C-00599C.svg)
 
 <p align="center">
-  <img src="docs/videos/demo.gif" width="85%" alt="Main Demonstration">
+  <img src="docs/videos/시연.gif" width="85%" alt="Main Demonstration">
 </p>
 
 본 프로젝트는 라즈베리파이 환경에서 **리눅스 커널 디바이스 드라이버부터 유저 공간의 데몬, 그리고 Systemd 기반의 자동화**까지 임베디드 리눅스 시스템의 전 과정을 밑바닥부터 구축한 결과물입니다.
