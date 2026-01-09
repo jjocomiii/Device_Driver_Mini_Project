@@ -1,206 +1,93 @@
-# RPi4 On-Boot Device Driver Pack (Mini)
+# 📟 RPi Embedded Linux Monitor System
+> **Kernel-to-User Full Stack Implementation** on Raspberry Pi 4B
 
-Raspberry Pi 4B에서 **커널 모듈 기반 디바이스 드라이버 4개**와  
-**유저스페이스 데몬 1개**, 그리고 **systemd + udev 자동 실행/권한 설정**까지 한 번에 묶은 미니 패키지입니다.
-
-부팅 후 별도 조작 없이,
-- 커널 모듈 로드
-- /dev 노드 권한 설정
-- 데몬 실행  
-까지 자동으로 완료되도록 구성했습니다.
-
----
-
-## What you get
-
-### 1) OLED UI (SSD1306)
-- 시간/날짜 페이지
-- 온/습도 페이지
-- 페이지 전환 및 RTC 편집 상태 표시
-
-### 2) Input (Rotary + Key)
-- 페이지 전환
-- RTC 시간 편집/저장(필드 단위)
-
-### 3) Sensor + Output (DHT11 + LED Bar)
-- 주기 샘플링 기반 온습도 캐시
-- 습도 값을 0~8단계로 매핑해 LED Bar 자동 갱신
-
----
-
-## Demo
-
-> 아래 gif/png는 예시 경로입니다. 실제 저장 위치에 맞춰 수정하세요.
+![Generic Badge](https://img.shields.io/badge/Platform-Raspberry_Pi_4B-C51A4A.svg) ![Generic Badge](https://img.shields.io/badge/Kernel-Linux_Device_Driver-F34B7D.svg) ![Generic Badge](https://img.shields.io/badge/Language-C-00599C.svg)
 
 <p align="center">
-  <img src="docs/videos/demo.gif" width="520">
+  <img src="docs/videos/demo.gif" width="85%" alt="Main Demonstration">
 </p>
 
-<details>
-<summary><b>More</b></summary>
+본 프로젝트는 라즈베리파이 환경에서 **리눅스 커널 디바이스 드라이버부터 유저 공간의 데몬, 그리고 Systemd 기반의 자동화**까지 임베디드 리눅스 시스템의 전 과정을 밑바닥부터 구축한 결과물입니다.
 
-<br/>
-
-- Page switching  
-  <img src="docs/videos/switching_mode.gif" width="520">
-
-- RTC edit & save  
-  <img src="docs/videos/edit_time.gif" width="520">
-
-- Humidity → LED bar  
-  <img src="docs/videos/humidity_change.gif" width="520">
-
-</details>
+하드웨어 제어(OLED, RTC, Sensor, Actuator)를 위한 커널 모듈을 직접 작성하고, 이를 통합 관리하는 상태 머신(State Machine) 기반의 어플리케이션을 구현하여 **부팅 즉시 동작하는 완성형 임베디드 시스템**을 목표로 했습니다.
 
 ---
 
-## Hardware
+## 🛠️ System Architecture
 
-- Setup  
-  <img src="docs/hardware/setup.png" width="520">
+단순한 라이브러리 활용이 아닌, **OS 커널 영역과 사용자 영역의 명확한 역할 분리**를 통해 시스템 안정성과 확장성을 확보했습니다.
 
-- Schematic  
-  <img src="docs/hardware/schematic.png" width="520">
-
-<details>
-<summary><b>UI screenshots</b></summary>
-
-<br/>
-
-- Time edit  
-  <img src="docs/hardware/ui_time_edit.png" width="520">
-
-- Sensor page  
-  <img src="docs/hardware/ui_sensor.png" width="520">
-
-</details>
-
----
-
-## System Overview
-
-### Device nodes
-- `/dev/ssd1306` : OLED framebuffer write
-- `/dev/dht11`   : DHT11 read (driver 내부에서 캐시 갱신)
-- `/dev/rotary`  : rotary/key event read/poll
-- `/dev/rtc0`    : RTC read/set (DS1302)
-
-### Boot automation
-- `mini-kmods.service` : 부팅 시 `.ko` 모듈 로드
-- `env-oled.service`   : OLED UI 데몬 자동 실행
-- `99-mini-dev.rules`  : /dev 노드 권한 세팅
-
----
-
-## Functional Details (Implementation)
-
-### OLED daemon: env-oled
-- `/dev/ssd1306`에 **128x64 framebuffer (1024 bytes)**를 주기적으로 write
-- 2 pages
-  - **Clock**: `YYYY-MM-DD` + `HH:MM:SS`
-  - **Sensor**: `HUMI xx%`(큰 글씨) + `TEMP xxC`
-
-### Rotary/Key behavior
-- Normal mode  
-  - Rotary: Clock ↔ Sensor 전환  
-  - Key(K): Clock → Edit 진입 / Sensor → Clock 복귀
-
-- Edit mode  
-  - Key(K): 필드 이동 `YEAR → MON → DAY → HOUR → MIN → SEC → EXIT`
-  - Rotary: 선택 필드 값 증감
-  - EXIT에서 Key(K): `RTC_SET_TIME` 저장 + "SAVED" 토스트 출력
-
-### DHT11 + LED Bar
-- DHT11 주기 샘플링(기본 2초)으로 값 캐시
-- 습도 0~100% → 0~8 단계로 변환
-- LED Bar는 드라이버에서 자동 갱신
-
-### RTC (DS1302)
-- `/dev/rtc0` 제공
-- daemon이 `RTC_RD_TIME / RTC_SET_TIME`로 읽기/설정
-
----
-
-## Wiring (Fixed Pinout)
-
-> **BCM(GPIO 번호)** 기준 / 괄호는 **Physical Pin(물리 핀)**
-
-### OLED (SSD1306 / I2C)
-| Signal | BCM | Physical | Note |
-|---|---:|---:|---|
-| SDA | GPIO2 | 3 | I2C Data |
-| SCL | GPIO3 | 5 | I2C Clock |
-| VCC | - | 1 or 17 | 3.3V |
-| GND | - | Any | |
-
-### DHT11
-| Signal | BCM | Physical | Note |
-|---|---:|---:|---|
-| DATA | GPIO4 | 7 | 1-Wire |
-| VCC | - | - | 3.3V |
-| GND | - | - | |
-
-### DS1302 (RTC)
-| Signal | BCM | Physical | Note |
-|---|---:|---:|---|
-| CLK | GPIO5 | 29 | |
-| DAT | GPIO6 | 31 | |
-| RST/CE | GPIO13 | 33 | Chip Enable |
-| VCC | - | - | 3.3V |
-| GND | - | - | |
-
-### Rotary Encoder
-| Signal | BCM | Physical | Note |
-|---|---:|---:|---|
-| S1 | GPIO17 | 11 | Phase A |
-| S2 | GPIO27 | 13 | Phase B |
-| KEY | GPIO22 | 15 | Push Button |
-| GND | - | - | Common |
-
-### LED Bar (8ch)
-| CH | BCM | Physical |
-|---:|---:|---:|
-| 1 | GPIO23 | 16 |
-| 2 | GPIO24 | 18 |
-| 3 | GPIO25 | 22 |
-| 4 | GPIO12 | 32 |
-| 5 | GPIO16 | 36 |
-| 6 | GPIO20 | 38 |
-| 7 | GPIO21 | 40 |
-| 8 | GPIO26 | 37 |
-
----
-
-## Permissions
-
-udev rule(`99-mini-dev.rules`)로 다음 노드 권한을 `0666`으로 설정합니다.
-- `/dev/ssd1306`
-- `/dev/dht11`
-- `/dev/rotary`
-- `/dev/rtc0`
-
----
-
-## Architecture
-
+### 1. Software Stack Overview
 ```mermaid
-flowchart LR
-  subgraph Boot["Boot & OS Integration"]
-    KMOD["mini-kmods.service<br/>insmod modules"]
-    RULE["99-mini-dev.rules<br/>device permissions"]
-    SVC["env-oled.service<br/>start daemon"]
-  end
+flowchart TB
+    subgraph UserSpace ["User Space (Application Layer)"]
+        Daemon[["env-oled Daemon<br/>(Main Logic & UI)"]]
+        Config["User Config<br/>(Time/Display Settings)"]
+    end
 
-  subgraph Kernel["Kernel Space"]
-    M[".ko drivers<br/>ssd1306 | dht11_ledbar | rotary | ds1302_rtc"]
-    N["/dev nodes<br/>ssd1306 dht11 rotary rtc0"]
-  end
+    subgraph Interface ["System Interface"]
+        DevFiles["Character Device Nodes<br/>(/dev/ssd1306, /dev/rtc0, ...)"]
+        Udev["udev Rules<br/>(Permission Auto-set)"]
+    end
 
-  subgraph User["User Space"]
-    D["env-oled daemon"]
-  end
+    subgraph KernelSpace ["Kernel Space (Driver Layer)"]
+        Module1["SSD1306 Driver<br/>(I2C Framebuffer)"]
+        Module2["DHT11 & LED Driver<br/>(Sensor & GPIO Control)"]
+        Module3["Rotary Driver<br/>(Interrupt Handling)"]
+        Module4["DS1302 Driver<br/>(RTC Protocol)"]
+    end
 
-  KMOD --> M --> N
-  RULE --> N
-  SVC --> D
-  D <--> N
+    Daemon <==> DevFiles
+    DevFiles <==> Module1 & Module2 & Module3 & Module4
+    Udev -.-> DevFiles
+2. State Machine Design (UI Logic)Rotary Encoder 입력 인터럽트에 따라 화면 모드와 RTC 편집 모드를 유기적으로 전환하기 위해 FSM(Finite State Machine) 구조를 적용했습니다.코드 스니펫stateDiagram-v2
+    direction LR
+    
+    %% States
+    state "Idle: Clock View" as Clock
+    state "Idle: Sensor View" as Sensor
+    state "Mode: Time Edit" as Edit
+    
+    %% Transitions
+    [*] --> Clock
+    Clock --> Sensor : Rotate
+    Sensor --> Clock : Rotate
+    
+    Clock --> Edit : Button Click
+    Edit --> Clock : Save & Exit
+    
+    state Edit {
+        direction TB
+        SelectField --> ChangeValue : Rotate
+        ChangeValue --> SelectField : Button(Next)
+        SelectField : Year / Month / Day
+        SelectField : Hour / Min / Sec
+    }
+📸 Demonstration & Features시스템의 주요 동작 시나리오입니다. FSM 기반의 모드 전환과 인터럽트 제어를 통한 즉각적인 반응성을 확인하실 수 있습니다.1. Mode Switching (FSM)2. RTC Time Edit (Rotary)3. Humi-Gauge (Kernel)<img src="docs/videos/switching_mode.gif" width="100%"><img src="docs/videos/edit_time.gif" width="100%"><img src="docs/videos/humidity_change.gif" width="100%">Rotary 회전:Clock ↔ Sensor 페이지 전환Button 클릭:필드 이동 및 RTC 값 수정Sensor 감지:습도값에 따른 LED 자동 제어Hardware Setup<p align="center"><img src="docs/hardware/setup.png" width="60%" alt="Hardware Setup"></p>🔩 Hardware SpecificationsPinout Configuration (BCM 기준)ComponentInterfaceGPIO PinsDescriptionSSD1306 OLEDI2CGPIO 2 (SDA), GPIO 3 (SCL)128x64 DisplayDHT11 Sensor1-WireGPIO 4Temp/Humi SensingDS1302 RTC3-WireGPIO 5 (CLK), GPIO 6 (DAT), GPIO 13 (RST)Real-Time ClockRotary EncoderGPIOGPIO 17 (A), GPIO 27 (B), GPIO 22 (SW)User InputLED BarGPIOGPIO 12, 16, 20, 21, 23, 24, 25, 26Humidity VisualizerNote: 모든 핀 번호는 물리적 핀 번호가 아닌 BCM(Broadcom SOC Channel) 번호를 기준으로 매핑되었습니다.🚀 Key Implementation Details1. 커널 레벨의 실시간 제어 (Kernel Modules)Direct Hardware Access: /dev/ssd1306, /dev/rtc0 등 리눅스 표준 인터페이스인 캐릭터 디바이스 노드를 생성하여 하드웨어를 추상화했습니다.Hardware-driven Automation: DHT11 센서값에 따라 LED Bar가 점등되는 로직을 유저 공간이 아닌 커널 드라이버(dht11_ledbar.c) 내부에서 직접 처리하여 반응 속도와 신뢰성을 높였습니다.2. 유저 공간 데몬 (Main Application)env-oled Daemon: poll() 시스템 콜을 활용하여 Rotary Encoder의 인터럽트 이벤트를 비동기로 감지합니다.Graphic Handling: 128x64 픽셀 프레임버퍼를 직접 드로잉하여 RTC 시간을 표시하고, 편집 모드 진입 시 직관적인 필드 이동 UI를 제공합니다.3. 부팅 자동화 (Systemd & Udev)udev Rules: 디바이스 노드 생성 시 권한 문제(Permission denied)를 방지하기 위해 99-mini-dev.rules를 작성, 자동으로 mode=0666 권한을 부여했습니다.Systemd Service: mini-kmods.service(모듈 로드)와 env-oled.service(앱 실행)를 등록하여 전원 인가 시 별도의 조작 없이 시스템이 구동됩니다.🔧 Installation & Build본 프로젝트는 Raspberry Pi OS (32-bit/64-bit) 환경에서 테스트되었습니다.1. Kernel Modules BuildBash# 리눅스 커널 헤더 경로 지정 (본인 환경에 맞게 수정)
+export KDIR=/home/ubuntu/linux 
+make
+2. User Daemon CompilationBashgcc -O2 -Wall -o env-oled env-oled.c
+sudo install -m 0755 env-oled /usr/local/bin/env-oled
+3. Deploy Automation ScriptsBash# udev 룰 적용 (디바이스 권한 설정)
+sudo cp 99-mini-dev.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules && sudo udevadm trigger
+
+# systemd 서비스 등록
+sudo cp *.service /etc/systemd/system/
+sudo systemctl daemon-reload
+
+# 서비스 시작 및 부팅 등록
+sudo systemctl enable --now mini-kmods.service
+sudo systemctl enable --now env-oled.service
+💡 Troubleshooting & Analysis프로젝트 진행 중 발생한 하드웨어 신호 무결성 문제와 해결 과정입니다.Case 1: 1-Wire 통신 불안정 (DHT11)현상: 드라이버 로드 후 read() 시 지속적인 Checksum Error 또는 Timeout 발생.분석: 소프트웨어 타이밍 문제인지 하드웨어 문제인지 판별하기 위해 오실로스코프로 DATA 핀 파형 측정.해결: High 신호가 충분한 전압 레벨에 도달하지 못하는 현상을 확인, Pull-up 저항 배선 보강 및 접점 재연결을 통해 깨끗한 펄스 파형을 확보함.<p align="center"><img src="docs/hardware/trouble_shooting.png" width="70%" alt="Oscilloscope Analysis"></p>Case 2: Rotary Encoder 바운싱(Bouncing)현상: 한 번의 회전 동작에 다수의 이벤트가 트리거되는 현상.해결: 하드웨어 필터(Capacitor) 대신 커널 드라이버 내에서 소프트웨어 디바운싱(Debouncing) 로직을 추가하여 5ms 이내의 중복 인터럽트를 무시하도록 구현.<p align="center"><img src="docs/hardware/trouble_shooting2.png" width="70%" alt="Debouncing Logic"></p>📂 File StructurePlaintext.
+├── kernel_modules/
+│   ├── ssd1306_i2c.c        # OLED Framebuffer Driver
+│   ├── dht11_ledbar.c       # Sensor & Actuator Driver
+│   ├── rotary_device.c      # Input Subsystem Driver
+│   └── ds1302_rpi_rtc.c     # RTC Protocol Driver
+├── user_app/
+│   └── env-oled.c           # Main Control Daemon
+├── config/
+│   ├── 99-mini-dev.rules    # Udev Rule
+│   └── *.service            # Systemd Units
+└── docs/                    # Schematics & Datasheets
