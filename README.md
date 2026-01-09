@@ -15,39 +15,17 @@
 
 ## 🛠️ System Architecture
 
+![architecture](https://github.com/user-attachments/assets/b4ad44a8-a466-4034-b669-7dc62746757d)
+
 단순한 라이브러리 활용이 아닌, **OS 커널 영역과 사용자 영역의 명확한 역할 분리**를 통해 시스템 안정성과 확장성을 확보했습니다.
 
 
 ### 1. State Machine Design (UI Logic)
 
 Rotary Encoder 입력 인터럽트에 따라 화면 모드와 RTC 편집 모드를 유기적으로 전환하기 위해 **FSM(Finite State Machine)** 구조를 적용했습니다.
+<img width="624" height="1068" alt="FSM" src="https://github.com/user-attachments/assets/c0c4944e-efd9-4f71-be93-fcfde97d3dbf" />
 
-```mermaid
-stateDiagram-v2
-    direction LR
-    
-    %% States
-    state "Idle: Clock View" as Clock
-    state "Idle: Sensor View" as Sensor
-    state "Mode: Time Edit" as Edit
-    
-    %% Transitions
-    [*] --> Clock
-    Clock --> Sensor : Rotate
-    Sensor --> Clock : Rotate
-    
-    Clock --> Edit : Button Click
-    Edit --> Clock : Save & Exit
-    
-    state Edit {
-        direction TB
-        SelectField --> ChangeValue : Rotate
-        ChangeValue --> SelectField : Button(Next)
-        SelectField : Year / Month / Day
-        SelectField : Hour / Min / Sec
-    }
 
-```
 
 ---
 
