@@ -1,5 +1,3 @@
-
-```markdown
 # 📟 RPi Embedded Linux Monitor System
 > **Kernel-to-User Full Stack Implementation** on Raspberry Pi 4B
 
@@ -19,33 +17,8 @@
 
 단순한 라이브러리 활용이 아닌, **OS 커널 영역과 사용자 영역의 명확한 역할 분리**를 통해 시스템 안정성과 확장성을 확보했습니다.
 
-### 1. Software Stack Overview
-```mermaid
-flowchart TB
-    subgraph UserSpace ["User Space (Application Layer)"]
-        Daemon[["env-oled Daemon<br/>(Main Logic & UI)"]]
-        Config["User Config<br/>(Time/Display Settings)"]
-    end
 
-    subgraph Interface ["System Interface"]
-        DevFiles["Character Device Nodes<br/>(/dev/ssd1306, /dev/rtc0, ...)"]
-        Udev["udev Rules<br/>(Permission Auto-set)"]
-    end
-
-    subgraph KernelSpace ["Kernel Space (Driver Layer)"]
-        Module1["SSD1306 Driver<br/>(I2C Framebuffer)"]
-        Module2["DHT11 & LED Driver<br/>(Sensor & GPIO Control)"]
-        Module3["Rotary Driver<br/>(Interrupt Handling)"]
-        Module4["DS1302 Driver<br/>(RTC Protocol)"]
-    end
-
-    Daemon <==> DevFiles
-    DevFiles <==> Module1 & Module2 & Module3 & Module4
-    Udev -.-> DevFiles
-
-```
-
-### 2. State Machine Design (UI Logic)
+### 1. State Machine Design (UI Logic)
 
 Rotary Encoder 입력 인터럽트에 따라 화면 모드와 RTC 편집 모드를 유기적으로 전환하기 위해 **FSM(Finite State Machine)** 구조를 적용했습니다.
 
